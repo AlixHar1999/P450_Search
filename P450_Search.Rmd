@@ -1,0 +1,35 @@
+---
+title: "Kinase search"
+author: "Alix Harlington"
+date: "03/02/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(pander)
+library(readr)
+```
+
+```{r}
+df1 <- list.files(path="~/Bacteria filter list/1_P450_search/", full.names = TRUE) %>% 
+  lapply(read_csv) %>% 
+  bind_rows %>%
+  rename(
+    Locus_tag = `Locus tag`,
+    Protein_product = `Protein product`,
+    Protein_name = `Protein Name`,
+    Species = Accession
+  ) %>%
+  select(-`#Name`)
+df1
+```
+
+```{r}
+
+```
+
