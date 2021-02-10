@@ -26,11 +26,11 @@ rawdata <- list.files(path = "~/Bacteria filter list/1_P450_search/", pattern = 
   bind_rows() %>%
   rename(
     Locus_tag = `Locus tag`,
-    Protein_product = `Protein product`,
+    Protein_ID = `Protein product`,
     Protein_name = `Protein Name`,
     Species = Accession
   ) %>%
-  select(Species, Start, Stop, Strand, GeneID, Locus, Locus_tag, Protein_product, Length, Protein_name)
+  select(Species, Start, Stop, Strand, GeneID, Locus, Locus_tag, Protein_ID, Length, Protein_name)
 rawdata
 
 ```
@@ -41,7 +41,7 @@ rawdata
 filterdata <- rawdata %>%
   select(-GeneID, -Locus, Locus_tag) %>%
   filter(str_detect(Protein_name, "P450|ferredoxin")) %>%
-  arrange(Protein_product)
+  arrange(Protein_ID)
 filterdata
 ```
 
@@ -54,8 +54,8 @@ tally(filterdata)
 
 ```{r proteinlist}
 proteinlist <- filterdata %>%
-  select(Protein_product) %>%
-  arrange(Protein_product)
+  select(Protein_ID) %>%
+  arrange(Protein_ID)
 proteinlist
 
 write_csv(proteinlist, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/ferredoxin_P450.csv")
@@ -65,7 +65,7 @@ write_csv(proteinlist, file = "~/Bacteria filter list/1_P450_search/Proteins_P45
 ## Seperate is used to remove species and protein name from the first column and rename it to protein_product.
 
 ```{r}
-fastafile <- read_faa(file = "~/Bacteria filter list/1_P450_search/ferredoxin_P450_proteins.fasta") %>% separate(seq_name, into = c("Protein_product"), sep = " ")
+fastafile <- read_faa(file = "~/Bacteria filter list/1_P450_search/ferredoxin_P450_proteins.fasta") %>% separate(seq_name, into = c("Protein_ID"), sep = " ")
 
 fastafile
 
