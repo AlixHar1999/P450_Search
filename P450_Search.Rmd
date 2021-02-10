@@ -13,10 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(pander)
 library(readr)
+library(ampir)
 ```
 
 ```{r}
-df1 <- list.files(path="~/Bacteria filter list/1_P450_search/", full.names = TRUE) %>% 
+df1 <- list.files(path = "~/Bacteria filter list/1_P450_search/", pattern = "*.csv", full.names = TRUE) %>% 
   lapply(read_csv) %>% 
   bind_rows %>%
   rename(
@@ -25,11 +26,43 @@ df1 <- list.files(path="~/Bacteria filter list/1_P450_search/", full.names = TRU
     Protein_name = `Protein Name`,
     Species = Accession
   ) %>%
-  select(-`#Name`)
+  select(Species, Start, Stop, Strand, GeneID, Locus, Locus_tag, Protein_product, Length, Protein_name)
 df1
+
+
 ```
 
 ```{r}
+df2 <- df1 %>%
+  select(-GeneID, -Locus, Locus_tag) %>%
+  filter(str_detect(Protein_name, "P450")) 
+df2
+```
 
+```{r}
+tally(df2)
+```
+
+```{r}
+df3 <- df2 %>%
+  select(Protein_product) %>%
+  arrange(Protein_product)
+df3
+
+write_csv(df3, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/P450.csv")
+```
+
+
+### Once this file has downloaded up load it to the batch entrez website and download the fast file containing the amino acids sequences.
+
+
+```{r}
+fastfile <- read_faa(file = "~/Bacteria filter list/1_P450_search/P450_proteins.fasta") %>% separate(seq_name, into = c("Protein_ID"), sep = " ")
+
+test <- fastfile
+
+test
+
+write_csv(test, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/P450_fasta.csv")
 ```
 
