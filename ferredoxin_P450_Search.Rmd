@@ -1,0 +1,84 @@
+---
+title: "Kinase search"
+author: "Alix Harlington"
+date: "03/02/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+library(tidyverse)
+library(pander)
+library(readr)
+library(ampir)
+```
+
+## Download the .csv protein files of organism/s of interest into the same working directory as this .Rmd.
+
+## Make a list of dataframes based on the .csv files in the directory. Combine them into a single dataframe and rename some column names.
+
+```{r rawdata}
+rawdata <- list.files(path = "~/Bacteria filter list/1_P450_search/", pattern = "*.csv", full.names = TRUE) %>% 
+  lapply(read_csv) %>% 
+  bind_rows() %>%
+  rename(
+    Locus_tag = `Locus tag`,
+    Protein_product = `Protein product`,
+    Protein_name = `Protein Name`,
+    Species = Accession
+  ) %>%
+  select(Species, Start, Stop, Strand, GeneID, Locus, Locus_tag, Protein_product, Length, Protein_name)
+rawdata
+
+```
+
+## Filter this dataframe for P450 proteins and arrange the protein_product numbers from smallest to largest ID number. (This makes it easier when using batch entrez to ensure lists are in the same order)
+
+```{r filter}
+filterdata <- rawdata %>%
+  select(-GeneID, -Locus, Locus_tag) %>%
+  filter(str_detect(Protein_name, "P450|ferredoxin")) %>%
+  arrange(Protein_product)
+filterdata
+```
+
+```{r tally}
+tally(filterdata)
+```
+
+## Export a .csv file of the protein ID for use and upload to batch Entrez.
+### Once this file is made upload it to the batch entrez website and download the fasta file containing the amino acids sequences.
+
+```{r proteinlist}
+proteinlist <- filterdata %>%
+  select(Protein_product) %>%
+  arrange(Protein_product)
+proteinlist
+
+write_csv(proteinlist, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/ferredoxin_P450.csv")
+```
+
+## Once you download the fasta file from batch entrez the command read_faa will take a fasta file and convert it to a dataframe.
+## Seperate is used to remove species and protein name from the first column and rename it to protein_product.
+
+```{r}
+fastafile <- read_faa(file = "~/Bacteria filter list/1_P450_search/ferredoxin_P450_proteins.fasta") %>% separate(seq_name, into = c("Protein_product"), sep = " ")
+
+fastafile
+
+write_csv(fastafile, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/ferredoxin_P450_fasta.csv")
+```
+
+## Export the final results containg the species ID, start, stop, strand, protein ID, Length, protein name and sequence.
+
+```{r}
+finaldata <- inner_join(filterdata, fastafile) %>%
+  select(-Locus_tag)
+finaldata
+
+write_csv(finaldata, file = "~/Bacteria filter list/1_P450_search/Proteins_P450/ferredoxin_P450_final.csv")
+```
+
